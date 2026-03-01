@@ -5,13 +5,11 @@ include "../includes/header.php";
 include "../includes/db.php";
 
 $user_id = $_SESSION['user_id'];
-// Fetch basic user data
 $u_query = $conn->prepare("SELECT name, email FROM Users WHERE user_id = ?");
 $u_query->bind_param("i", $user_id);
 $u_query->execute();
 $user_info = $u_query->get_result()->fetch_assoc();
 
-// Check for existing booking
 $st_query = $conn->prepare("SELECT student_id FROM Students WHERE user_id = ?");
 $st_query->bind_param("i", $user_id);
 $st_query->execute();
