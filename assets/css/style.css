@@ -1,0 +1,47 @@
+/* Card Hover Effects */
+.hall-card {
+    transition: all 0.3s ease-in-out;
+    border-radius: 20px;
+    background: #ffffff;
+    overflow: hidden;
+}
+
+.hall-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 15px 30px rgba(0, 51, 102, 0.1) !important;
+}
+
+.card-img-container {
+    background: #f0f7ff;
+    border-radius: 50%;
+    width: 160px;
+    height: 160px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: 0.4s;
+}
+
+.hall-card:hover .card-img-container {
+    background: #e1eeff;
+}
+
+.hall-card:hover .card-img-container img {
+    transform: scale(1.1);
+}
+
+.view-btn {
+    transition: 0.3s;
+    font-weight: 500;
+}
+
+.view-btn:hover {
+    background-color: var(--bu-dark-blue);
+    color: white;
+}
+
+/* Object fit for carousel images */
+.object-fit-cover {
+    object-fit: cover;
+}
