@@ -1,19 +1,29 @@
-<?php 
+<?php
 require_once "../../includes/auth.php";
-checkAccess(['Student']); 
-include "../../includes/header.php"; 
+checkAccess(['Student']);
+include "../../includes/header.php";
 include "../../includes/db.php";
 
 $user_id = $_SESSION['user_id'];
-$query = "SELECT s.*, r.room_id, r.floor, h.name as hostel_name 
-          FROM Students s 
-          LEFT JOIN Rooms r ON s.room_id = r.room_id 
-          LEFT JOIN Hostels h ON s.hostel_id = h.hostel_id 
-          WHERE s.user_id = ?";
+$query = "SELECT s.*, r.room_id, r.floor, h.name as hostel_name
+FROM Students s
+LEFT JOIN Rooms r ON s.room_id = r.room_id
+LEFT JOIN Hostels h ON s.hostel_id = h.hostel_id
+WHERE s.user_id = ?";
 $stmt = $conn->prepare($query);
 $stmt->bind_param("i", $user_id);
 $stmt->execute();
-$student_data = $stmt->get_result()->fetch_assoc();
+$result = $stmt->get_result();
+
+$student_data = $result->fetch_assoc();
+
+if (!$student_data) {
+$student_data = [
+'room_id' => null,
+'hostel_name' => 'Profile Not Found',
+'student_id' => null
+];
+}
 ?>
 
 <div class="container-fluid py-4">
@@ -32,7 +42,8 @@ $student_data = $stmt->get_result()->fetch_assoc();
                     <h4 class="mb-0">
                         <?php echo $student_data['room_id'] ? "Room " . $student_data['room_id'] : "Not Allocated"; ?>
                     </h4>
-                    <small class="text-primary"><?php echo $student_data['hostel_name'] ?? "No Hostel Assigned"; ?></small>
+                    <small
+                        class="text-primary"><?php echo $student_data['hostel_name'] ?? "No Hostel Assigned"; ?></small>
                 </div>
             </div>
         </div>
@@ -64,7 +75,8 @@ $student_data = $stmt->get_result()->fetch_assoc();
                 </div>
                 <h5>Room Booking</h5>
                 <p class="small text-muted">Apply for a room or check allocation status.</p>
-                <a href="../../modules/booking.php" class="btn btn-outline-primary btn-sm mt-auto stretched-link">Manage Booking</a>
+                <a href="../../modules/booking.php" class="btn btn-outline-primary btn-sm mt-auto stretched-link">Manage
+                    Booking</a>
             </div>
         </div>
 
@@ -75,7 +87,8 @@ $student_data = $stmt->get_result()->fetch_assoc();
                 </div>
                 <h5>Payments</h5>
                 <p class="small text-muted">Pay hostel fees and view transaction history.</p>
-                <a href="../../modules/payment.php" class="btn btn-outline-success btn-sm mt-auto stretched-link">View Receipts</a>
+                <a href="../../modules/payment.php" class="btn btn-outline-success btn-sm mt-auto stretched-link">View
+                    Receipts</a>
             </div>
         </div>
 
@@ -86,7 +99,8 @@ $student_data = $stmt->get_result()->fetch_assoc();
                 </div>
                 <h5>Complaints</h5>
                 <p class="small text-muted">Report issues with furniture or electricity.</p>
-                <a href="../../modules/complaints.php" class="btn btn-outline-warning btn-sm mt-auto stretched-link">File Complaint</a>
+                <a href="../../modules/complaints.php"
+                    class="btn btn-outline-warning btn-sm mt-auto stretched-link">File Complaint</a>
             </div>
         </div>
 
@@ -97,20 +111,22 @@ $student_data = $stmt->get_result()->fetch_assoc();
                 </div>
                 <h5>Notices</h5>
                 <p class="small text-muted">Latest updates from the Provost office.</p>
-                <a href="../../modules/notifications.php" class="btn btn-outline-info btn-sm mt-auto stretched-link">View All</a>
+                <a href="../../modules/notifications.php"
+                    class="btn btn-outline-info btn-sm mt-auto stretched-link">View All</a>
             </div>
         </div>
     </div>
 </div>
 
 <style>
-.hover-lift {
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-.hover-lift:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important;
-}
+    .hover-lift {
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .hover-lift:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1) !important;
+    }
 </style>
 
 <?php include "../../includes/footer.php"; ?>
