@@ -5,6 +5,21 @@ include "../includes/header.php";
 include "../includes/db.php";
 
 $user_id = $_SESSION['user_id'];
+
+$st_check = $conn->prepare("SELECT student_id FROM Students WHERE user_id = ?");
+$st_check->bind_param("i", $user_id);
+$st_check->execute();
+$st_result = $st_check->get_result();
+
+if ($st_result->num_rows === 0) {
+    $ins = $conn->prepare("INSERT INTO Students (user_id) VALUES (?)");
+    $ins->bind_param("i", $user_id);
+    $ins->execute();
+    $student_id = $conn->insert_id;
+} else {
+    $student_id = $st_result->fetch_assoc()['student_id'];
+}
+
 $u_query = $conn->prepare("SELECT name, email FROM Users WHERE user_id = ?");
 $u_query->bind_param("i", $user_id);
 $u_query->execute();
@@ -26,7 +41,7 @@ $existing_booking = $check_booking->get_result()->fetch_assoc();
         <div class="col-md-8 col-lg-7">
             <div class="card shadow border-0" style="border-radius: 20px;">
                 <div class="card-header bg-primary text-white text-center py-4" style="border-radius: 20px 20px 0 0;">
-                    <h4 class="mb-0 fw-bold">Hall Admission Form</h4>
+                    <h4 class="mb-0 fw-bold">Hall Allotment Form</h4>
                     <small>University of Barishal</small>
                 </div>
                 <div class="card-body p-4 p-md-5">
@@ -50,9 +65,9 @@ $existing_booking = $check_booking->get_result()->fetch_assoc();
                                 </div>
 
                                 <div class="mb-3">
-                                    <label class="form-label fw-semibold">Student ID / Registration No.</label>
+                                    <label class="form-label fw-semibold">Roll No.</label>
                                     <input type="text" name="student_reg_id" class="form-control" required
-                                        placeholder="e.g. 21CSE045">
+                                        placeholder="e.g. 230102039">
                                 </div>
 
                                 <div class="mb-3">

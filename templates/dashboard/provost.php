@@ -1,10 +1,9 @@
-<?php 
+<?php
 require_once "../../includes/auth.php";
-checkAccess(['Provost']); 
-include "../../includes/header.php"; 
+checkAccess(['Provost']);
+include "../../includes/header.php";
 include "../../includes/db.php";
 
-// Fetch Stats for Provost
 $total_students = $conn->query("SELECT COUNT(*) as count FROM Students WHERE room_id IS NOT NULL")->fetch_assoc()['count'];
 $pending_bookings = $conn->query("SELECT COUNT(*) as count FROM Bookings WHERE status = 'Pending'")->fetch_assoc()['count'];
 $open_complaints = $conn->query("SELECT COUNT(*) as count FROM Complaints WHERE status = 'Open'")->fetch_assoc()['count'];
@@ -72,29 +71,38 @@ $open_complaints = $conn->query("SELECT COUNT(*) as count FROM Complaints WHERE 
                     </thead>
                     <tbody>
                         <?php
-                        $requests = $conn->query("SELECT b.booking_id, u.name, h.name as hostel_name, b.room_id, b.status 
-                                                FROM Bookings b 
-                                                JOIN Students s ON b.student_id = s.student_id 
-                                                JOIN Users u ON s.user_id = u.user_id 
-                                                JOIN Rooms r ON b.room_id = r.room_id 
-                                                JOIN Hostels h ON r.hostel_id = h.hostel_id 
-                                                WHERE b.status = 'Pending'");
-                        
-                        if($requests->num_rows > 0):
-                            while($row = $requests->fetch_assoc()):
-                        ?>
-                        <tr>
-                            <td><span class="fw-bold"><?php echo $row['name']; ?></span></td>
-                            <td><?php echo $row['hostel_name']; ?></td>
-                            <td>Room #<?php echo $row['room_id']; ?></td>
-                            <td>Just now</td>
-                            <td class="text-center">
-                                <a href="../../api/approve_booking.php?id=<?php echo $row['booking_id']; ?>&action=approve" class="btn btn-success btn-sm px-3">Approve</a>
-                                <a href="../../api/approve_booking.php?id=<?php echo $row['booking_id']; ?>&action=reject" class="btn btn-outline-danger btn-sm px-3">Reject</a>
-                            </td>
-                        </tr>
-                        <?php endwhile; else: ?>
-                            <tr><td colspan="5" class="text-center py-4 text-muted">No pending applications found.</td></tr>
+                        $requests = $conn->query("SELECT 
+        b.booking_id, 
+        u.name, 
+        h.name as hostel_name, 
+        b.room_id, 
+        b.status 
+    FROM Bookings b 
+    JOIN Students s ON b.student_id = s.student_id 
+    JOIN Users u ON s.user_id = u.user_id 
+    LEFT JOIN Rooms r ON b.room_id = r.room_id 
+    LEFT JOIN Hostels h ON r.hostel_id = h.hostel_id 
+    WHERE b.status = 'Pending'");
+
+                        if ($requests && $requests->num_rows > 0):
+                            while ($row = $requests->fetch_assoc()):
+                                ?>
+                                <tr>
+                                    <td><span class="fw-bold"><?php echo htmlspecialchars($row['name']); ?></span></td>
+                                    <td><?php echo htmlspecialchars($row['hostel_name'] ?? 'Not Specified'); ?></td>
+                                    <td>Room #<?php echo htmlspecialchars($row['room_id'] ?? 'TBD'); ?></td>
+                                    <td>Just now</td>
+                                    <td class="text-center">
+                                        <a href="../../api/approve_booking.php?id=<?php echo $row['booking_id']; ?>&action=approve"
+                                            class="btn btn-success btn-sm px-3">Approve</a>
+                                        <a href="../../api/approve_booking.php?id=<?php echo $row['booking_id']; ?>&action=reject"
+                                            class="btn btn-outline-danger btn-sm px-3">Reject</a>
+                                    </td>
+                                </tr>
+                            <?php endwhile; else: ?>
+                            <tr>
+                                <td colspan="5" class="text-center py-4 text-muted">No pending applications found.</td>
+                            </tr>
                         <?php endif; ?>
                     </tbody>
                 </table>

@@ -41,11 +41,11 @@ if ($dup->get_result()->num_rows > 0) {
 // Generate unique receipt number
 $receipt_no = 'BUHMS-' . strtoupper(substr(md5(uniqid(rand(), true)), 0, 8));
 
-// Insert payment record
-$ins = $conn->prepare("INSERT INTO Payments 
+$ins = $conn->prepare("INSERT INTO payments 
     (student_id, payment_type, month, amount, payment_date, payment_method, transaction_id, receipt_no, note, status) 
     VALUES (?, ?, ?, ?, CURDATE(), ?, ?, ?, ?, 'Pending')");
-$ins->bind_param("issdsss s", $student_id, $type, $month, $amount, $method, $txn_id, $receipt_no, $note);
+
+$ins->bind_param("issdssss", $student_id, $type, $month, $amount, $method, $txn_id, $receipt_no, $note);
 $ins->bind_param("issdssss", $student_id, $type, $month, $amount, $method, $txn_id, $receipt_no, $note);
 
 if ($ins->execute()) {
