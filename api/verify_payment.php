@@ -1,8 +1,15 @@
 <?php
-session_start();
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
 include('../includes/db.php');
 require_once('../includes/auth.php');
-checkAccess(['AdminOfficer', 'Provost', 'AssistantRegistrar']);
+
+// 1. Check Permissions
+if ($_SESSION['role'] != "AdminOfficer") {
+    die("Unauthorized Access");
+}
 
 if (!isset($_GET['id']) || !isset($_GET['action'])) {
     header("Location: ../templates/dashboard/admin.php");
@@ -10,27 +17,33 @@ if (!isset($_GET['id']) || !isset($_GET['action'])) {
 }
 
 $payment_id = intval($_GET['id']);
-$action     = $_GET['action'];
-$verifier   = $_SESSION['user_id'];
+$action = $_GET['action'];
+$verifier = $_SESSION['user_id'];
 
-if ($action === 'verify') {
-    $stmt = $conn->prepare("UPDATE Payments SET status='Verified', verified_by=?, verified_at=NOW() WHERE payment_id=?");
-    $stmt->bind_param("ii", $verifier, $payment_id);
-    $stmt->execute();
+// 2. Determine Status
+$status = ($action === 'verify') ? 'Verified' : (($action === 'reject') ? 'Rejected' : die("Invalid Action"));
 
-    // Log
-    $log = $conn->prepare("INSERT INTO Logs (user_id, action) VALUES (?, ?)");
-    $a = "Verified payment ID: $payment_id";
-    $log->bind_param("is", $verifier, $a);
-    $log->execute();
+// 3. Prepare and Execute Update
+$sql = "UPDATE payments SET status=?, verified_by=?, verified_at=NOW() WHERE payment_id=?";
+$stmt = $conn->prepare($sql);
 
-} elseif ($action === 'reject') {
-    $stmt = $conn->prepare("UPDATE Payments SET status='Rejected', verified_by=?, verified_at=NOW() WHERE payment_id=?");
-    $stmt->bind_param("ii", $verifier, $payment_id);
-    $stmt->execute();
+if (!$stmt) {
+    // This will print the exact database error (e.g., 'Unknown column verified_by')
+    die("Database Error: " . $conn->error);
 }
 
-// Redirect back to referring page
-$ref = $_SERVER['HTTP_REFERER'] ?? '../templates/dashboard/admin.php';
-header("Location: $ref?msg=payment_updated");
+$stmt->bind_param("sii", $status, $verifier, $payment_id);
+
+if ($stmt->execute()) {
+    $log_msg = "$status payment ID: $payment_id";
+    $log = $conn->prepare("INSERT INTO logs (user_id, action) VALUES (?, ?)");
+    if ($log) {
+        $log->bind_param("is", $verifier, $log_msg);
+        $log->execute();
+    }
+    // Redirect to the tab matching the action just taken
+    header("Location: /hostel-management-system/templates/dashboard/admin.php?pstatus=" . urlencode($status) . "&msg=success");
+} else {
+    header("Location: /hostel-management-system/templates/dashboard/admin.php?pstatus=Pending&msg=error");
+}
 exit();

@@ -4,9 +4,9 @@ checkAccess(['Provost']);
 include "../../includes/header.php";
 include "../../includes/db.php";
 
-$total_students = $conn->query("SELECT COUNT(*) as count FROM Students WHERE room_id IS NOT NULL")->fetch_assoc()['count'];
-$pending_bookings = $conn->query("SELECT COUNT(*) as count FROM Bookings WHERE status = 'Pending'")->fetch_assoc()['count'];
-$open_complaints = $conn->query("SELECT COUNT(*) as count FROM Complaints WHERE status = 'Open'")->fetch_assoc()['count'];
+$total_students = $conn->query("SELECT COUNT(*) as count FROM students WHERE room_id IS NOT NULL")->fetch_assoc()['count'];
+$pending_bookings = $conn->query("SELECT COUNT(*) as count FROM bookings WHERE status = 'Pending'")->fetch_assoc()['count'];
+$open_complaints = $conn->query("SELECT COUNT(*) as count FROM complaints WHERE status = 'Open'")->fetch_assoc()['count'];
 ?>
 
 <div class="container-fluid py-4">
@@ -77,11 +77,11 @@ $open_complaints = $conn->query("SELECT COUNT(*) as count FROM Complaints WHERE 
         h.name as hostel_name, 
         b.room_id, 
         b.status 
-    FROM Bookings b 
-    JOIN Students s ON b.student_id = s.student_id 
-    JOIN Users u ON s.user_id = u.user_id 
-    LEFT JOIN Rooms r ON b.room_id = r.room_id 
-    LEFT JOIN Hostels h ON r.hostel_id = h.hostel_id 
+    FROM bookings b 
+    JOIN students s ON b.student_id = s.student_id 
+    JOIN users u ON s.user_id = u.user_id 
+    LEFT JOIN rooms r ON b.room_id = r.room_id 
+    LEFT JOIN hostels h ON r.hostel_id = h.hostel_id 
     WHERE b.status = 'Pending'");
 
                         if ($requests && $requests->num_rows > 0):

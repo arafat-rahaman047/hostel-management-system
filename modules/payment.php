@@ -8,8 +8,8 @@ $user_id = $_SESSION['user_id'];
 
 // Get student record
 $st = $conn->prepare("SELECT s.student_id, s.hostel_id, h.name AS hostel_name
-                      FROM Students s
-                      LEFT JOIN Hostels h ON s.hostel_id = h.hostel_id
+                      FROM students s
+                      LEFT JOIN hostels h ON s.hostel_id = h.hostel_id
                       WHERE s.user_id = ?");
 $st->bind_param("i", $user_id);
 $st->execute();
@@ -18,11 +18,13 @@ $student_id = $student['student_id'] ?? null;
 
 // Fee structure for student's hostel
 $fees = [];
-if ($student['hostel_id']) {
+if (!empty($student['hostel_id'])) {
     $fee_q = $conn->prepare("SELECT * FROM fee_structure WHERE hostel_id = ? AND academic_year = '2025-2026'");
-    $fee_q->bind_param("i", $student['hostel_id']);
-    $fee_q->execute();
-    $fees = $fee_q->get_result()->fetch_all(MYSQLI_ASSOC);
+    if ($fee_q) {
+        $fee_q->bind_param("i", $student['hostel_id']);
+        $fee_q->execute();
+        $fees = $fee_q->get_result()->fetch_all(MYSQLI_ASSOC);
+    }
 }
 
 $history = [];
