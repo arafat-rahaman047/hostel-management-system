@@ -1,4 +1,4 @@
-# 🏠 University Hostel Management System
+# 🏫 University Hostel Management System
 
 A full-stack web application designed to streamline university hostel operations. This system provides role-based dashboards and automation for booking, room allocation, payments, inventory, and student management.
 
