@@ -8,14 +8,18 @@ if ($_SESSION['role'] != "AdminOfficer") {
 }
 
 // Statistics
-$totalStudents = $conn->query("SELECT COUNT(*) AS total FROM users WHERE role='Student'")->fetch_assoc()['total'];
-$totalRooms = $conn->query("SELECT COUNT(*) AS total FROM rooms")->fetch_assoc()['total'];
-$pendingBookings = $conn->query("SELECT COUNT(*) AS total FROM bookings WHERE status='Pending'")->fetch_assoc()['total'];
-$totalComplaints = $conn->query("SELECT COUNT(*) AS total FROM complaints WHERE status!='Resolved'")->fetch_assoc()['total'];
-$totalRevenueResult = $conn->query("SELECT SUM(amount) AS total FROM payments WHERE status='Verified'")->fetch_assoc();
-$totalRevenue = $totalRevenueResult['total'] ?? 0;
+$totalStudents       = $conn->query("SELECT COUNT(*) AS total FROM users WHERE role='Student'")->fetch_assoc()['total'];
+$totalRooms          = $conn->query("SELECT COUNT(*) AS total FROM rooms")->fetch_assoc()['total'];
+$pendingBookings     = $conn->query("SELECT COUNT(*) AS total FROM bookings WHERE status='Pending'")->fetch_assoc()['total'];
+$totalComplaints     = $conn->query("SELECT COUNT(*) AS total FROM complaints WHERE status!='Resolved'")->fetch_assoc()['total'];
+$totalRevenueResult  = $conn->query("SELECT SUM(amount) AS total FROM payments WHERE status='Verified'")->fetch_assoc();
+$totalRevenue        = $totalRevenueResult['total'] ?? 0;
 $pendingPaymentsResult = $conn->query("SELECT COUNT(*) AS total FROM payments WHERE status='Pending'")->fetch_assoc();
-$pendingPayments = $pendingPaymentsResult['total'] ?? 0;
+$pendingPayments     = $pendingPaymentsResult['total'] ?? 0;
+
+// Total notices count
+$totalNoticesResult  = $conn->query("SELECT COUNT(*) AS total FROM notices");
+$totalNotices        = $totalNoticesResult ? $totalNoticesResult->fetch_assoc()['total'] : 0;
 ?>
 
 <div class="container-fluid py-4">
@@ -29,6 +33,12 @@ $pendingPayments = $pendingPaymentsResult['total'] ?? 0;
                 <div class="alert alert-success alert-dismissible fade show d-flex align-items-center gap-2" role="alert">
                     <i class="fas fa-check-circle fa-lg"></i>
                     <div><strong>Room added successfully!</strong> The new room is now available for booking.</div>
+                    <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert"></button>
+                </div>
+            <?php elseif ($msg === 'notice_posted'): ?>
+                <div class="alert alert-success alert-dismissible fade show d-flex align-items-center gap-2" role="alert">
+                    <i class="fas fa-bullhorn fa-lg"></i>
+                    <div><strong>Notice posted!</strong> Students can now see it on their dashboard.</div>
                     <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert"></button>
                 </div>
             <?php elseif ($msg === 'success'): ?>
@@ -138,7 +148,7 @@ $pendingPayments = $pendingPaymentsResult['total'] ?? 0;
                         <?php
                         $hlist = $conn->query("SELECT * FROM hostels");
                         while ($h = $hlist->fetch_assoc()):
-                            ?>
+                        ?>
                             <option value="<?php echo $h['hostel_id']; ?>">
                                 <?php echo htmlspecialchars($h['name']); ?>
                             </option>
@@ -186,7 +196,7 @@ $pendingPayments = $pendingPaymentsResult['total'] ?? 0;
                         ");
                         if ($bookings->num_rows > 0):
                             while ($b = $bookings->fetch_assoc()):
-                                ?>
+                        ?>
                                 <tr>
                                     <td><strong><?php echo htmlspecialchars($b['name']); ?></strong></td>
                                     <td>Room #<?php echo $b['room_id']; ?></td>
@@ -197,7 +207,7 @@ $pendingPayments = $pendingPaymentsResult['total'] ?? 0;
                                             class="btn btn-outline-danger btn-sm px-3">Reject</a>
                                     </td>
                                 </tr>
-                            <?php endwhile; else: ?>
+                        <?php endwhile; else: ?>
                             <tr>
                                 <td colspan="3" class="text-center py-4 text-muted">No pending bookings.</td>
                             </tr>
@@ -226,8 +236,7 @@ $pendingPayments = $pendingPaymentsResult['total'] ?? 0;
                         <span class="text-warning">⏳</span> Pending
                         <?php
                         $pc = $conn->query("SELECT COUNT(*) AS c FROM payments WHERE status='Pending'")->fetch_assoc()['c'];
-                        if ($pc > 0)
-                            echo "<span class='badge bg-warning text-dark ms-1'>$pc</span>";
+                        if ($pc > 0) echo "<span class='badge bg-warning text-dark ms-1'>$pc</span>";
                         ?>
                     </a>
                 </li>
@@ -253,11 +262,10 @@ $pendingPayments = $pendingPaymentsResult['total'] ?? 0;
 
             <?php
             $pstatus = $_GET['pstatus'] ?? 'Pending';
-
             if ($pstatus === 'all') {
                 $where_clause = "";
             } else {
-                $safe_status = $conn->real_escape_string($pstatus);
+                $safe_status  = $conn->real_escape_string($pstatus);
                 $where_clause = "WHERE p.status = '$safe_status'";
             }
 
@@ -272,7 +280,6 @@ $pendingPayments = $pendingPaymentsResult['total'] ?? 0;
                 $where_clause
                 ORDER BY p.payment_date DESC
             ";
-
             $payments = $conn->query($payments_sql);
             if (!$payments) {
                 echo "<div class='alert alert-danger'>Query Error: " . $conn->error . "</div>";
@@ -299,17 +306,16 @@ $pendingPayments = $pendingPaymentsResult['total'] ?? 0;
                             while ($p = $payments->fetch_assoc()):
                                 $badge = match ($p['status']) {
                                     'Verified' => 'success',
-                                    'Pending' => 'warning',
+                                    'Pending'  => 'warning',
                                     'Rejected' => 'danger',
-                                    default => 'secondary'
+                                    default    => 'secondary'
                                 };
-                                ?>
+                        ?>
                                 <tr>
                                     <td><code class="small"><?php echo htmlspecialchars($p['receipt_no'] ?? '-'); ?></code></td>
                                     <td>
                                         <strong><?php echo htmlspecialchars($p['student_name'] ?? '-'); ?></strong><br>
-                                        <small
-                                            class="text-muted"><?php echo htmlspecialchars($p['student_reg_id'] ?? ''); ?></small>
+                                        <small class="text-muted"><?php echo htmlspecialchars($p['student_reg_id'] ?? ''); ?></small>
                                     </td>
                                     <td><?php echo htmlspecialchars($p['payment_type']); ?></td>
                                     <td><?php echo htmlspecialchars($p['month'] ?? '-'); ?></td>
@@ -348,7 +354,7 @@ $pendingPayments = $pendingPaymentsResult['total'] ?? 0;
                                         <?php endif; ?>
                                     </td>
                                 </tr>
-                            <?php endwhile; else: ?>
+                        <?php endwhile; else: ?>
                             <tr>
                                 <td colspan="9" class="text-center py-4 text-muted">
                                     <i class="fas fa-inbox fa-2x mb-2 d-block opacity-25"></i>
@@ -389,11 +395,11 @@ $pendingPayments = $pendingPaymentsResult['total'] ?? 0;
                         if ($complaints->num_rows > 0):
                             while ($c = $complaints->fetch_assoc()):
                                 $cbadge = match ($c['status']) {
-                                    'Resolved' => 'success',
+                                    'Resolved'   => 'success',
                                     'InProgress' => 'warning',
-                                    default => 'danger'
+                                    default      => 'danger'
                                 };
-                                ?>
+                        ?>
                                 <tr>
                                     <td><strong><?php echo htmlspecialchars($c['name']); ?></strong></td>
                                     <td><?php echo htmlspecialchars($c['description']); ?></td>
@@ -409,7 +415,7 @@ $pendingPayments = $pendingPaymentsResult['total'] ?? 0;
                                             class="btn btn-success btn-sm">Resolve</a>
                                     </td>
                                 </tr>
-                            <?php endwhile; else: ?>
+                        <?php endwhile; else: ?>
                             <tr>
                                 <td colspan="4" class="text-center py-4 text-muted">No complaints found.</td>
                             </tr>
@@ -420,7 +426,101 @@ $pendingPayments = $pendingPaymentsResult['total'] ?? 0;
         </div>
     </div>
 
+    <!-- ===== NOTICE MANAGEMENT ===== -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+            <h5 class="mb-0 fw-bold">
+                <i class="fas fa-bullhorn me-2 text-primary"></i>Post a Notice
+                <?php if ($totalNotices > 0): ?>
+                    <span class="badge bg-primary ms-2"><?php echo $totalNotices; ?> total</span>
+                <?php endif; ?>
+            </h5>
+            <a href="../../modules/notifications.php" class="btn btn-outline-primary btn-sm">
+                <i class="fas fa-eye me-1"></i> View All Notices
+            </a>
+        </div>
+        <div class="card-body">
+
+            <!-- Post Notice Form -->
+            <form method="POST" action="../../api/notice_api.php" class="row g-3">
+                <div class="col-md-8">
+                    <label class="form-label fw-semibold">Notice Title</label>
+                    <input type="text" name="title" class="form-control"
+                        placeholder="e.g. Water Supply Disruption" required>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold">Hall / Hostel</label>
+                    <select name="hostel_id" class="form-select">
+                        <option value="">All Halls</option>
+                        <?php
+                        $hlist2 = $conn->query("SELECT * FROM hostels");
+                        while ($h2 = $hlist2->fetch_assoc()):
+                        ?>
+                            <option value="<?php echo $h2['hostel_id']; ?>">
+                                <?php echo htmlspecialchars($h2['name']); ?>
+                            </option>
+                        <?php endwhile; ?>
+                    </select>
+                </div>
+                <div class="col-12">
+                    <label class="form-label fw-semibold">Notice Body</label>
+                    <textarea name="body" class="form-control" rows="3"
+                        placeholder="Write the full notice here..." required></textarea>
+                </div>
+                <div class="col-12">
+                    <button type="submit" class="btn btn-primary px-4">
+                        <i class="fas fa-paper-plane me-2"></i>Post Notice
+                    </button>
+                </div>
+            </form>
+
+            <!-- Recent Notices Preview -->
+            <hr class="mt-4">
+            <h6 class="fw-bold text-muted mb-3">
+                <i class="fas fa-history me-1"></i> Recently Posted Notices
+            </h6>
+            <div class="table-responsive">
+                <table class="table table-sm table-hover align-middle mb-0">
+                    <thead class="bg-light">
+                        <tr>
+                            <th>Title</th>
+                            <th>Hall</th>
+                            <th>Posted At</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php
+                        $recent_notices = $conn->query("
+                            SELECT n.title, n.created_at, h.name AS hostel_name
+                            FROM notices n
+                            LEFT JOIN hostels h ON n.hostel_id = h.hostel_id
+                            ORDER BY n.created_at DESC
+                            LIMIT 5
+                        ");
+                        if ($recent_notices && $recent_notices->num_rows > 0):
+                            while ($rn = $recent_notices->fetch_assoc()):
+                        ?>
+                            <tr>
+                                <td><?php echo htmlspecialchars($rn['title']); ?></td>
+                                <td><?php echo htmlspecialchars($rn['hostel_name'] ?? 'All Halls'); ?></td>
+                                <td><?php echo date('d M Y, h:i A', strtotime($rn['created_at'])); ?></td>
+                            </tr>
+                        <?php endwhile; else: ?>
+                            <tr>
+                                <td colspan="3" class="text-center text-muted py-3">
+                                    <i class="fas fa-bell-slash me-2 opacity-50"></i>No notices posted yet.
+                                </td>
+                            </tr>
+                        <?php endif; ?>
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+    </div>
+
 </div>
+
 <script>
     setTimeout(() => {
         document.querySelectorAll('.alert').forEach(a => {
@@ -428,4 +528,5 @@ $pendingPayments = $pendingPaymentsResult['total'] ?? 0;
         });
     }, 4000);
 </script>
+
 <?php include "../../includes/footer.php"; ?>

@@ -23,7 +23,7 @@
         <p>Equipped with high-speed internet and study friendly environment.</p>
       </div>
     </div>
-    <div class="carousel-item active" style="height: 500px;">
+    <div class="carousel-item" style="height: 500px;">
       <img src="assets/images/hall3.jpg" class="d-block w-100 h-100 object-fit-cover" alt="BU Hall 3">
       <div class="carousel-caption d-none d-md-block p-4"
         style="background: rgba(0, 51, 102, 0.7); border-radius: 15px;">
@@ -38,12 +38,10 @@
   <button class="carousel-control-next" type="button" data-bs-target="#hallCarousel" data-bs-slide="next">
     <span class="carousel-control-next-icon"></span>
   </button>
-  <button class="carousel-control-next" type="button" data-bs-target="#hallCarousel" data-bs-slide="next">
-    <span class="carousel-control-next-icon"></span>
-  </button>
 </div>
 
-<section class="py-5 bg-light">
+<!-- id="halls" added so sidebar "Hostels & Halls" link scrolls here -->
+<section class="py-5 bg-light" id="halls">
   <div class="container">
     <div class="text-center mb-5">
       <h6 class="text-primary text-uppercase fw-bold">Accommodation</h6>
@@ -54,14 +52,13 @@
     <div class="row g-4">
       <?php
       $halls = [
-        ['name' => 'Bijoy-24 Hall', 'img' => 'assets/images/logo.png'],
-        ['name' => 'Shere Bangla Hall', 'img' => 'assets/images/logo.png'],
-        ['name' => 'Kabi Sufia Kamal Hall', 'img' => 'assets/images/logo.png'],
-        ['name' => 'Tapashi Rabeya Basri Hall', 'img' => 'assets/images/logo.png']
+        ['name' => 'Bijoy-24 Hall',            'img' => 'assets/images/logo.png'],
+        ['name' => 'Shere Bangla Hall',         'img' => 'assets/images/logo.png'],
+        ['name' => 'Kabi Sufia Kamal Hall',     'img' => 'assets/images/logo.png'],
+        ['name' => 'Tapashi Rabeya Basri Hall', 'img' => 'assets/images/logo.png'],
       ];
 
-      foreach ($halls as $hall):
-        ?>
+      foreach ($halls as $hall): ?>
         <div class="col-lg-3 col-md-6">
           <div class="card h-100 border-0 shadow-sm hall-card text-center p-4">
             <div class="card-img-container mb-3">
@@ -81,6 +78,5 @@
     </div>
   </div>
 </section>
-
 
 <?php include "includes/footer.php"; ?>

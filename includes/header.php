@@ -81,12 +81,14 @@ if (session_status() === PHP_SESSION_NONE) {
                             <i class="fas fa-user-circle me-1"></i> <?php echo explode(' ', $_SESSION['name'])[0]; ?>
                         </button>
                         <ul class="dropdown-menu dropdown-menu-end">
-                            <li><a class="dropdown-item" href="#"><i class="fas fa-id-card me-2"></i>Profile</a></li>
+                            <li><a class="dropdown-item" href="/hostel-management-system/modules/profile.php"><i class="fas fa-id-card me-2"></i>Profile</a></li>
                             <li>
                                 <hr class="dropdown-divider">
                             </li>
-                            <li><a class="dropdown-item text-danger" href="/hostel-management-system/api/logout_api.php"><i
-                                        class="fas fa-sign-out-alt me-2"></i>Logout</a></li>
+                            <li><a class="dropdown-item text-danger"
+                                    href="/hostel-management-system/api/logout_api.php">
+                                    <i class="fas fa-sign-out-alt me-2"></i>Logout</a>
+                            </li>
                         </ul>
                     </div>
                 <?php else: ?>
@@ -99,6 +101,7 @@ if (session_status() === PHP_SESSION_NONE) {
         </div>
     </nav>
 
+    <!-- ===== OFFCANVAS SIDEBAR ===== -->
     <div class="offcanvas offcanvas-start" tabindex="-1" id="sidebarMenu">
         <div class="offcanvas-header border-bottom">
             <h5 class="offcanvas-title fw-bold text-primary">Main Navigation</h5>
@@ -106,20 +109,41 @@ if (session_status() === PHP_SESSION_NONE) {
         </div>
         <div class="offcanvas-body p-0">
             <div class="list-group list-group-flush mt-3">
-                <a href="/hostel-management-system/index.php" class="nav-link-custom mx-3 mb-2">
+
+                <!-- Home -->
+                <a href="/hostel-management-system/index.php"
+                   class="nav-link-custom mx-3 mb-2">
                     <i class="fas fa-home"></i> Home
                 </a>
-                <a href="#" class="nav-link-custom mx-3 mb-2">
-                    <i class="fas fa-hotel"></i> Hostels & Halls
+
+                <!-- Hostels & Halls → index.php scrolled to #halls -->
+                <a href="/hostel-management-system/index.php#halls"
+                   class="nav-link-custom mx-3 mb-2"
+                   data-bs-dismiss="offcanvas"
+                   onclick="smoothScrollAfterNav(event)">
+                    <i class="fas fa-hotel"></i> Hostels &amp; Halls
                 </a>
-                <a href="#" class="nav-link-custom mx-3 mb-2">
-                    <i class="fas fa-bullhorn"></i> Notices
-                </a>
+
+                <!-- Notices -->
+                <?php if (isset($_SESSION['user_id'])): ?>
+                    <a href="/hostel-management-system/modules/notifications.php"
+                       class="nav-link-custom mx-3 mb-2"
+                       data-bs-dismiss="offcanvas">
+                        <i class="fas fa-bullhorn"></i> Notices
+                    </a>
+                <?php else: ?>
+                    <a href="/hostel-management-system/templates/login.php"
+                       class="nav-link-custom mx-3 mb-2"
+                       data-bs-dismiss="offcanvas">
+                        <i class="fas fa-bullhorn"></i> Notices
+                    </a>
+                <?php endif; ?>
 
                 <hr class="mx-3">
 
                 <?php if (!isset($_SESSION['user_id'])): ?>
-                    <a href="/hostel-management-system/templates/login.php" class="nav-link-custom mx-3 mb-2">
+                    <a href="/hostel-management-system/templates/login.php"
+                       class="nav-link-custom mx-3 mb-2">
                         <i class="fas fa-sign-in-alt"></i> Login
                     </a>
                 <?php else: ?>
@@ -144,3 +168,33 @@ if (session_status() === PHP_SESSION_NONE) {
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        // Smooth scroll to #halls after sidebar closes (handles same-page and cross-page)
+        function smoothScrollAfterNav(e) {
+            const currentPage = window.location.pathname;
+            const isIndex = currentPage.endsWith('index.php') || currentPage.endsWith('/hostel-management-system/') || currentPage === '/hostel-management-system';
+
+            if (isIndex) {
+                // Already on index.php — prevent navigation, just scroll
+                e.preventDefault();
+                const offcanvas = bootstrap.Offcanvas.getInstance(document.getElementById('sidebarMenu'));
+                if (offcanvas) offcanvas.hide();
+                setTimeout(() => {
+                    const target = document.getElementById('halls');
+                    if (target) target.scrollIntoView({ behavior: 'smooth' });
+                }, 300);
+            }
+            // If NOT on index.php, let the href navigate normally to index.php#halls
+        }
+
+        // If page loaded with #halls in URL, scroll to it smoothly
+        window.addEventListener('load', () => {
+            if (window.location.hash === '#halls') {
+                setTimeout(() => {
+                    const el = document.getElementById('halls');
+                    if (el) el.scrollIntoView({ behavior: 'smooth' });
+                }, 200);
+            }
+        });
+    </script>

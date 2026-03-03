@@ -3,9 +3,9 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Mar 03, 2026 at 06:07 PM
+-- Generation Time: Mar 03, 2026 at 09:51 PM
 -- Server version: 10.4.32-MariaDB
--- PHP Version: 8.0.30
+-- PHP Version: 8.2.12
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -67,7 +67,8 @@ CREATE TABLE `complaints` (
 INSERT INTO `complaints` (`complaint_id`, `student_id`, `tutor_id`, `description`, `status`, `created_at`) VALUES
 (1, 1, NULL, 'Fan isn\'t working for 2 days.', 'Open', '2026-03-02 19:28:35'),
 (2, 6, 6, 'Fan is not working for 3 days.', 'Resolved', '2026-03-03 07:02:22'),
-(3, 1, 6, 'bijoy 24 hall room number 2004 celling fan is not working for two day.', 'Open', '2026-03-03 13:21:59');
+(3, 1, 11, 'bijoy 24 hall room number 2004 celling fan is not working for two day.', 'InProgress', '2026-03-03 13:21:59'),
+(4, 2, 6, 'Bijoy hall elctricity gone .', 'Resolved', '2026-03-03 20:29:26');
 
 -- --------------------------------------------------------
 
@@ -158,7 +159,46 @@ INSERT INTO `logs` (`log_id`, `user_id`, `action`, `timestamp`) VALUES
 (18, 9, 'Verified payment ID: 4', '2026-03-03 16:13:28'),
 (19, 2, 'Submitted payment: HallFee ৳3000 via bKash (TXN: 7EYV4KJGT)', '2026-03-03 16:51:00'),
 (20, 9, 'Verified payment ID: 5', '2026-03-03 16:51:29'),
-(21, 9, 'Added new room — Hostel ID: 2, Floor: 2, Capacity: 3', '2026-03-03 17:05:53');
+(21, 9, 'Added new room — Hostel ID: 2, Floor: 2, Capacity: 3', '2026-03-03 17:05:53'),
+(22, 9, 'Posted a notice: Hall Yearly Fee', '2026-03-03 17:50:54'),
+(23, 9, 'Posted a notice: Electricity Bill', '2026-03-03 17:57:13'),
+(24, 9, 'Posted a notice: Electricity Bill', '2026-03-03 17:57:20'),
+(25, 9, 'Posted a notice: dfsdf', '2026-03-03 17:59:56'),
+(26, 9, 'Posted a notice: Elafjasd', '2026-03-03 18:00:39'),
+(27, 9, 'Posted a notice: Monthly fee', '2026-03-03 18:26:50'),
+(28, 9, 'Created staff account: Md. Gajiur Rahman (HouseTutor)', '2026-03-03 19:59:33'),
+(29, 11, 'Updated complaint #3 to InProgress', '2026-03-03 20:00:02'),
+(30, 3, 'Filed a complaint', '2026-03-03 20:29:26'),
+(31, 6, 'Updated complaint #4 to InProgress', '2026-03-03 20:41:18'),
+(32, 6, 'Updated complaint #4 to Resolved', '2026-03-03 20:41:24');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `notices`
+--
+
+CREATE TABLE `notices` (
+  `notice_id` int(11) NOT NULL,
+  `posted_by` int(11) NOT NULL,
+  `hostel_id` int(11) DEFAULT NULL,
+  `title` varchar(255) NOT NULL,
+  `body` text NOT NULL,
+  `priority` enum('Low','Medium','High') DEFAULT 'Medium',
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `notices`
+--
+
+INSERT INTO `notices` (`notice_id`, `posted_by`, `hostel_id`, `title`, `body`, `priority`, `created_at`) VALUES
+(1, 9, 1, 'Hall Yearly Fee', 'Hall fee should be paid.', 'High', '2026-03-03 17:50:54'),
+(2, 9, NULL, 'Electricity Bill', 'Give me electricity bill', 'Medium', '2026-03-03 17:57:13'),
+(3, 9, NULL, 'Electricity Bill', 'Give me electricity bill', 'Medium', '2026-03-03 17:57:20'),
+(4, 9, NULL, 'dfsdf', 'adfasf', 'Medium', '2026-03-03 17:59:56'),
+(5, 9, NULL, 'Elafjasd', 'sdflkjasjf;laj', 'Medium', '2026-03-03 18:00:39'),
+(6, 9, NULL, 'Monthly fee', 'Complete the rules', 'High', '2026-03-03 18:26:50');
 
 -- --------------------------------------------------------
 
@@ -309,7 +349,8 @@ CREATE TABLE `students` (
 INSERT INTO `students` (`student_id`, `user_id`, `year`, `hostel_id`, `room_id`, `student_reg_id`, `blood_group`, `contact_no`, `father_name`, `father_contact`, `mother_name`, `mother_contact`, `permanent_address`, `reason_for_stay`, `department`) VALUES
 (1, 2, 2021, 1, 1, '22CSE047', 'B+', '01303541291', 'Habibur Rahman', '01992223531', 'Nilufa Yesmin', '01714882866', 'Uttara, Dhaka,', 'Financial Inability', 'Computer Science And Engineering'),
 (2, 3, 2022, 1, 1, '230102035', 'B+', '01303541291', 'Sakib Alom', '01992223531', 'Rahima Khatun', '01714882866', 'Norshindi, Dhaka.', 'Financial Problem.', 'Computer Science And Engineering'),
-(6, 5, NULL, 2, 20, '230102039', 'B+', '01644789099', 'Golam Rasul', '01345783462', 'Morsheda', '01846271220', 'Betagi, Borguna.', 'Financial Problem.', 'Computer Science and Engineering');
+(6, 5, NULL, 2, 20, '230102039', 'B+', '01644789099', 'Golam Rasul', '01345783462', 'Morsheda', '01846271220', 'Betagi, Borguna.', 'Financial Problem.', 'Computer Science and Engineering'),
+(7, 10, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -337,7 +378,44 @@ INSERT INTO `users` (`user_id`, `name`, `email`, `password_hash`, `role`, `creat
 (5, 'Md Shihab', 'shihab@bu.ac.bd', '$2y$10$5DZz0h7utoEBSb51UjXzKue9tR/lg8Km9qGWnZg39A9yKC.0FLnSq', 'Student', '2026-03-02 18:47:42'),
 (6, 'Syed Ashik-E-Elahi', 'ashik@bu.ac.bd', '$2y$10$FoMQPRnOum9vTq5NL2oVBOWHYAgcEuZtt6/H8VxqBLKGAoNEKJwsO', 'HouseTutor', '2026-03-03 08:55:46'),
 (7, 'Md. Humayun Kabir', 'humayun@bu.ac.bd', '$2y$10$NKrz9RprCQBtlH1OounNue66HVET1q1m1Qvd.CYxCs08ixUNI9SvO', 'AssistantRegistrar', '2026-03-03 08:58:46'),
-(9, 'Md. Mizanur Rahman Khan', 'mizanur@bu.ac.bd', '$2y$10$8kxEy8UxJ10F15d.P.qBBeXIjRxyfEJRGVMYTEKWoDUM.R1cmw94m', 'AdminOfficer', '2026-03-03 09:01:43');
+(9, 'Md. Mizanur Rahman Khan', 'mizanur@bu.ac.bd', '$2y$10$8kxEy8UxJ10F15d.P.qBBeXIjRxyfEJRGVMYTEKWoDUM.R1cmw94m', 'AdminOfficer', '2026-03-03 09:01:43'),
+(10, 'Raufe hasan Ruhan', 'ruhan@bu.ac.bd', '$2y$10$kMQuoxvlb.ALI0N7Mk1pMeaqOos6LmXTJIfusTtqk1z3QHCUtkmzm', 'Student', '2026-03-03 19:57:27'),
+(11, 'Md. Gajiur Rahman', 'sagoregaji@gmail.com', '$2y$10$jh3u5aACiOKniA2vuYZsiOpcFKZFE6uX3XqgzbzAwg6TJY0oJTji2', 'HouseTutor', '2026-03-03 19:59:33');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `user_profiles`
+--
+
+CREATE TABLE `user_profiles` (
+  `profile_id` int(11) NOT NULL,
+  `user_id` int(11) NOT NULL,
+  `phone` varchar(20) DEFAULT NULL,
+  `date_of_birth` date DEFAULT NULL,
+  `blood_group` varchar(5) DEFAULT NULL,
+  `gender` enum('Male','Female','Other') DEFAULT NULL,
+  `profile_photo` varchar(255) DEFAULT NULL,
+  `permanent_address` text DEFAULT NULL,
+  `bio` text DEFAULT NULL,
+  `designation` varchar(100) DEFAULT NULL,
+  `employee_id` varchar(50) DEFAULT NULL,
+  `assigned_hostel_id` int(11) DEFAULT NULL,
+  `office_room` varchar(50) DEFAULT NULL,
+  `join_date` date DEFAULT NULL,
+  `nid_number` varchar(30) DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `user_profiles`
+--
+
+INSERT INTO `user_profiles` (`profile_id`, `user_id`, `phone`, `date_of_birth`, `blood_group`, `gender`, `profile_photo`, `permanent_address`, `bio`, `designation`, `employee_id`, `assigned_hostel_id`, `office_room`, `join_date`, `nid_number`, `created_at`, `updated_at`) VALUES
+(1, 3, '01303541291', NULL, 'B+', NULL, 'user_3_1772569456.jpg', 'Norshindi, Dhaka.', 'I am Muslim.', NULL, NULL, NULL, NULL, NULL, NULL, '2026-03-03 19:11:12', '2026-03-03 20:24:16'),
+(2, 9, '01303541291', '2026-03-20', 'B+', 'Male', 'user_9_1772566240.jpg', '29/A Karwan Bazar', 'I am a student.', NULL, NULL, NULL, NULL, NULL, NULL, '2026-03-03 19:30:40', '2026-03-03 19:30:40'),
+(3, 6, '01303541291', '2026-03-13', 'A+', 'Male', 'user_6_1772570551.jpg', 'Comilla', 'I love to play cricket.', NULL, NULL, NULL, NULL, NULL, NULL, '2026-03-03 20:42:31', '2026-03-03 20:42:31');
 
 --
 -- Indexes for dumped tables
@@ -387,6 +465,14 @@ ALTER TABLE `logs`
   ADD KEY `user_id` (`user_id`);
 
 --
+-- Indexes for table `notices`
+--
+ALTER TABLE `notices`
+  ADD PRIMARY KEY (`notice_id`),
+  ADD KEY `posted_by` (`posted_by`),
+  ADD KEY `hostel_id` (`hostel_id`);
+
+--
 -- Indexes for table `payments`
 --
 ALTER TABLE `payments`
@@ -417,6 +503,14 @@ ALTER TABLE `users`
   ADD UNIQUE KEY `email` (`email`);
 
 --
+-- Indexes for table `user_profiles`
+--
+ALTER TABLE `user_profiles`
+  ADD PRIMARY KEY (`profile_id`),
+  ADD UNIQUE KEY `user_id` (`user_id`),
+  ADD KEY `assigned_hostel_id` (`assigned_hostel_id`);
+
+--
 -- AUTO_INCREMENT for dumped tables
 --
 
@@ -430,7 +524,7 @@ ALTER TABLE `bookings`
 -- AUTO_INCREMENT for table `complaints`
 --
 ALTER TABLE `complaints`
-  MODIFY `complaint_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `complaint_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `fee_structure`
@@ -454,7 +548,13 @@ ALTER TABLE `inventory`
 -- AUTO_INCREMENT for table `logs`
 --
 ALTER TABLE `logs`
-  MODIFY `log_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=22;
+  MODIFY `log_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=33;
+
+--
+-- AUTO_INCREMENT for table `notices`
+--
+ALTER TABLE `notices`
+  MODIFY `notice_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `payments`
@@ -472,13 +572,19 @@ ALTER TABLE `rooms`
 -- AUTO_INCREMENT for table `students`
 --
 ALTER TABLE `students`
-  MODIFY `student_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `student_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `user_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+  MODIFY `user_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
+
+--
+-- AUTO_INCREMENT for table `user_profiles`
+--
+ALTER TABLE `user_profiles`
+  MODIFY `profile_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- Constraints for dumped tables
@@ -517,6 +623,13 @@ ALTER TABLE `logs`
   ADD CONSTRAINT `logs_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`);
 
 --
+-- Constraints for table `notices`
+--
+ALTER TABLE `notices`
+  ADD CONSTRAINT `notices_ibfk_1` FOREIGN KEY (`posted_by`) REFERENCES `users` (`user_id`),
+  ADD CONSTRAINT `notices_ibfk_2` FOREIGN KEY (`hostel_id`) REFERENCES `hostels` (`hostel_id`);
+
+--
 -- Constraints for table `payments`
 --
 ALTER TABLE `payments`
@@ -535,6 +648,13 @@ ALTER TABLE `students`
   ADD CONSTRAINT `students_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`),
   ADD CONSTRAINT `students_ibfk_2` FOREIGN KEY (`hostel_id`) REFERENCES `hostels` (`hostel_id`),
   ADD CONSTRAINT `students_ibfk_3` FOREIGN KEY (`room_id`) REFERENCES `rooms` (`room_id`);
+
+--
+-- Constraints for table `user_profiles`
+--
+ALTER TABLE `user_profiles`
+  ADD CONSTRAINT `up_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `up_ibfk_2` FOREIGN KEY (`assigned_hostel_id`) REFERENCES `hostels` (`hostel_id`) ON DELETE SET NULL;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

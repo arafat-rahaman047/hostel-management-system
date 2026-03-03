@@ -19,60 +19,71 @@ $student_data = $stmt->get_result()->fetch_assoc();
 
 if (!$student_data) {
     $student_data = [
-        'room_id' => null,
-        'hostel_name' => 'Profile Not Found',
-        'student_id' => null
+        'room_id'      => null,
+        'hostel_name'  => 'Profile Not Found',
+        'student_id'   => null,
+        'hostel_id'    => null,
     ];
 }
 
-// ── LIVE PAYMENT STATUS ───────────────────────────────────────────────────────
+// ── PAYMENT STATUS ────────────────────────────────────────────────────────────
 $payment_status_label = 'No Payments';
 $payment_status_color = 'secondary';
-$payment_status_note = 'No payment records found';
-$active_complaints = 0;
+$payment_status_note  = 'No payment records found';
+$active_complaints    = 0;
 
 if (!empty($student_data['student_id'])) {
     $student_id = $student_data['student_id'];
 
-    // Count pending payments
     $q = $conn->prepare("SELECT COUNT(*) AS cnt FROM Payments WHERE student_id = ? AND status = 'Pending'");
     $q->bind_param("i", $student_id);
     $q->execute();
     $pending_count = $q->get_result()->fetch_assoc()['cnt'] ?? 0;
 
-    // Count rejected payments
     $q = $conn->prepare("SELECT COUNT(*) AS cnt FROM Payments WHERE student_id = ? AND status = 'Rejected'");
     $q->bind_param("i", $student_id);
     $q->execute();
     $rejected_count = $q->get_result()->fetch_assoc()['cnt'] ?? 0;
 
-    // Latest payment record
     $q = $conn->prepare("SELECT status, payment_date, payment_type FROM Payments WHERE student_id = ? ORDER BY payment_date DESC LIMIT 1");
     $q->bind_param("i", $student_id);
     $q->execute();
     $latest_payment = $q->get_result()->fetch_assoc();
 
-    // Determine status label, color and note
     if ($rejected_count > 0) {
         $payment_status_label = 'Payment Rejected';
         $payment_status_color = 'danger';
-        $payment_status_note = "$rejected_count payment(s) rejected — please resubmit";
+        $payment_status_note  = "$rejected_count payment(s) rejected — please resubmit";
     } elseif ($pending_count > 0) {
         $payment_status_label = 'Pending Verification';
         $payment_status_color = 'warning';
-        $payment_status_note = "$pending_count payment(s) awaiting admin approval";
+        $payment_status_note  = "$pending_count payment(s) awaiting admin approval";
     } elseif (!empty($latest_payment) && $latest_payment['status'] === 'Verified') {
         $payment_status_label = 'Clear';
         $payment_status_color = 'success';
-        $payment_status_note = 'Last verified: ' . date('d M Y', strtotime($latest_payment['payment_date']));
+        $payment_status_note  = 'Last verified: ' . date('d M Y', strtotime($latest_payment['payment_date']));
     }
 
-    // Active (unresolved) complaints
     $q = $conn->prepare("SELECT COUNT(*) AS cnt FROM Complaints WHERE student_id = ? AND status != 'Resolved'");
     $q->bind_param("i", $student_id);
     $q->execute();
     $active_complaints = $q->get_result()->fetch_assoc()['cnt'] ?? 0;
 }
+
+// ── LATEST NOTICE (for student's hostel OR all halls) ─────────────────────────
+$latest_notice    = null;
+$hostel_id_notice = $student_data['hostel_id'] ?? null;
+
+$nq = $conn->prepare("
+    SELECT title, priority, created_at
+    FROM notices
+    WHERE hostel_id = ? OR hostel_id IS NULL
+    ORDER BY created_at DESC
+    LIMIT 1
+");
+$nq->bind_param("i", $hostel_id_notice);
+$nq->execute();
+$latest_notice = $nq->get_result()->fetch_assoc();
 ?>
 
 <div class="container-fluid py-4">
@@ -84,10 +95,31 @@ if (!empty($student_data['student_id'])) {
         </div>
     </div>
 
+    <!-- ── LATEST NOTICE BANNER ── -->
+    <?php if ($latest_notice): ?>
+    <div class="row mb-3">
+        <div class="col-12">
+            <div class="alert alert-info d-flex align-items-center gap-3 border-0 shadow-sm mb-0" role="alert">
+                <i class="fas fa-bullhorn fa-lg flex-shrink-0"></i>
+                <div class="flex-grow-1">
+                    <strong>New Notice:</strong>
+                    <?php echo htmlspecialchars($latest_notice['title']); ?>
+                    <small class="text-muted ms-2">
+                        <?php echo date('d M Y', strtotime($latest_notice['created_at'])); ?>
+                    </small>
+                </div>
+                <a href="../../modules/notifications.php"
+                   class="btn btn-sm btn-outline-info flex-shrink-0">
+                    View All
+                </a>
+            </div>
+        </div>
+    </div>
+    <?php endif; ?>
+
     <!-- ── STAT CARDS ── -->
     <div class="row g-3 mb-4">
 
-        <!-- Room Status -->
         <div class="col-md-4">
             <div class="card border-0 shadow-sm border-start border-primary border-4">
                 <div class="card-body">
@@ -102,7 +134,6 @@ if (!empty($student_data['student_id'])) {
             </div>
         </div>
 
-        <!-- Payment Status (LIVE) -->
         <div class="col-md-4">
             <div class="card border-0 shadow-sm border-start border-<?php echo $payment_status_color; ?> border-4">
                 <div class="card-body">
@@ -115,10 +146,8 @@ if (!empty($student_data['student_id'])) {
             </div>
         </div>
 
-        <!-- Active Complaints (LIVE) -->
         <div class="col-md-4">
-            <div
-                class="card border-0 shadow-sm border-start border-<?php echo $active_complaints > 0 ? 'danger' : 'warning'; ?> border-4">
+            <div class="card border-0 shadow-sm border-start border-<?php echo $active_complaints > 0 ? 'danger' : 'warning'; ?> border-4">
                 <div class="card-body">
                     <h6 class="text-muted small text-uppercase fw-bold">Active Complaints</h6>
                     <h4 class="mb-0 text-<?php echo $active_complaints > 0 ? 'danger' : 'success'; ?>">
@@ -138,7 +167,7 @@ if (!empty($student_data['student_id'])) {
 
         <div class="col-md-6 col-lg-3">
             <div class="card h-100 border-0 shadow-sm text-center p-3 hover-lift">
-                <div class="rounded-circle bg-primary bg-opacity-10 p-3 mx-auto mb-3" style="width: 70px;">
+                <div class="rounded-circle bg-primary bg-opacity-10 p-3 mx-auto mb-3" style="width:70px;">
                     <i class="fas fa-bed fa-2x text-primary"></i>
                 </div>
                 <h5>Room Booking</h5>
@@ -151,7 +180,7 @@ if (!empty($student_data['student_id'])) {
 
         <div class="col-md-6 col-lg-3">
             <div class="card h-100 border-0 shadow-sm text-center p-3 hover-lift">
-                <div class="rounded-circle bg-success bg-opacity-10 p-3 mx-auto mb-3" style="width: 70px;">
+                <div class="rounded-circle bg-success bg-opacity-10 p-3 mx-auto mb-3" style="width:70px;">
                     <i class="fas fa-file-invoice-dollar fa-2x text-success"></i>
                 </div>
                 <h5>Payments</h5>
@@ -164,7 +193,7 @@ if (!empty($student_data['student_id'])) {
 
         <div class="col-md-6 col-lg-3">
             <div class="card h-100 border-0 shadow-sm text-center p-3 hover-lift">
-                <div class="rounded-circle bg-warning bg-opacity-10 p-3 mx-auto mb-3" style="width: 70px;">
+                <div class="rounded-circle bg-warning bg-opacity-10 p-3 mx-auto mb-3" style="width:70px;">
                     <i class="fas fa-tools fa-2x text-warning"></i>
                 </div>
                 <h5>Complaints</h5>
@@ -177,11 +206,11 @@ if (!empty($student_data['student_id'])) {
 
         <div class="col-md-6 col-lg-3">
             <div class="card h-100 border-0 shadow-sm text-center p-3 hover-lift">
-                <div class="rounded-circle bg-info bg-opacity-10 p-3 mx-auto mb-3" style="width: 70px;">
+                <div class="rounded-circle bg-info bg-opacity-10 p-3 mx-auto mb-3" style="width:70px;">
                     <i class="fas fa-bullhorn fa-2x text-info"></i>
                 </div>
                 <h5>Notices</h5>
-                <p class="small text-muted">Latest updates from the Provost office.</p>
+                <p class="small text-muted">Latest updates from the Admin office.</p>
                 <a href="../../modules/notifications.php" class="btn btn-outline-info btn-sm mt-auto stretched-link">
                     View All
                 </a>
@@ -195,10 +224,9 @@ if (!empty($student_data['student_id'])) {
     .hover-lift {
         transition: transform 0.2s ease, box-shadow 0.2s ease;
     }
-
     .hover-lift:hover {
         transform: translateY(-5px);
-        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1) !important;
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important;
     }
 </style>
 
